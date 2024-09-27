@@ -1,0 +1,11 @@
+**/__pycache__/
+**/source/
+*.pyc
+*.pyo
+*.egg-info
+.vscode/
+dist/
+build/
+models/**/*.so
+ops/**/*.so
+**/PaddleOCR/
