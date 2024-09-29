@@ -1,1 +1,2 @@
+model/weights/*.pdparams filter=lfs diff=lfs merge=lfs -text
 models/weights/*.pdparams filter=lfs diff=lfs merge=lfs -text
