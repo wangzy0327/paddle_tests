@@ -2,7 +2,7 @@ import paddle
 import os
 import time
 import numpy as np
-# import paddleclas
+import paddleclas
 import facenet
 import paddle.vision
 import ppdet
@@ -60,7 +60,7 @@ def to_cinn_net(net, **kwargs):
         **kwargs
     )
 
-def benchmark(net, input, repeat=5, warmup=3):
+def benchmark(net, input, repeat=15, warmup=3):
     # warm up
     for _ in range(warmup):
         net(input)
@@ -75,7 +75,7 @@ def benchmark(net, input, repeat=5, warmup=3):
         t.append((t2 - t1)*1000)
     print("--[benchmark] Run for %d times, the average latency is: %f ms" % (repeat, np.mean(t)))
     
-def benchmark_ano(net, input, repeat=5, warmup=3):
+def benchmark_ano(net, input, repeat=15, warmup=3):
     # warm up
     for _ in range(warmup):
         net.ocr(input)
@@ -171,7 +171,7 @@ class TestBaseAno:
         net = self.to_eval(use_cinn)
         benchmark(net, input)        
 
-'''
+
 class PPLCNet_x1_0(TestBase):
     def __init__(self, batch_size=1):
         super().__init__()
@@ -195,7 +195,7 @@ class SwinTransformer_base_patch4_window(TestBase):
         super().__init__()
         self.net = paddleclas.SwinTransformer_base_patch4_window12_384(pretrained=True)
         self.input = paddle.randn([batch_size, 3, 384, 384])         
-'''
+
 
 class YOLOv3TestBase(TestBase):  
     def __init__(self, config_path, weights_path, batch_size=1):  
@@ -373,7 +373,41 @@ class PP_OCRv4_Mobile_Ret_Test(TestBaseAno):
         self.input = preprocess_image(self.input)
         self.model_path = './PaddleOCR/configs/det/PP-OCRv4/ch_PP-OCRv4_rec_distill.yml'
         # Ensure the model is initialized
-        self.init_model()                               
+        self.init_model()     
+   
+
+# class PP_Structurev2_Layoutlm_Test(TestBaseAno):
+#     def __init__(self, batch_size=1):
+#         super().__init__()
+#         # Initialize input data with random values
+#         # self.input = paddle.randn([batch_size, 3, 640, 640])
+#         self.input = np.random.rand(3, 640, 640).astype('float32')
+#         self.input = preprocess_image(self.input)
+#         self.model_path = './PaddleOCR/configs/kie/layoutlm_series/re_layoutlmv2_xfund_zh.yml'
+#         # Ensure the model is initialized
+#         self.init_model()
+
+# class PP_Structurev2_Layoutxlm_Test(TestBaseAno):
+#     def __init__(self, batch_size=1):
+#         super().__init__()
+#         # Initialize input data with random values
+#         # self.input = paddle.randn([batch_size, 3, 640, 640])
+#         self.input = np.random.rand(3, 640, 640).astype('float32')
+#         self.input = preprocess_image(self.input)
+#         self.model_path = './PaddleOCR/configs/kie/vi_layoutxlm/re_layoutxlm_xfund_zh.yml'
+#         # Ensure the model is initialized
+#         self.init_model()
+        
+# class PP_Structurev2_SLANet_Test(TestBaseAno):
+#     def __init__(self, batch_size=1):
+#         super().__init__()
+#         # Initialize input data with random values
+#         # self.input = paddle.randn([batch_size, 3, 640, 640])
+#         self.input = np.random.rand(3, 640, 640).astype('float32')
+#         self.input = preprocess_image(self.input)
+#         self.model_path = './PaddleOCR/configs/table/SLANet_ch.yml'
+#         # Ensure the model is initialized
+#         self.init_model()                                   
 
 if __name__ == "__main__":
     '''
@@ -401,25 +435,25 @@ if __name__ == "__main__":
     
     print("Test YOLOv3  ........")
     model = YOLOv3TestBase('configs/yolov3/yolov3_darknet53_270e_coco.yml', 'weights/yolov3_darknet53_270e_coco.pdparams')       
-    # # model.check_cinn_output()
+    # # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
     print("Test PP-DETR  ........")
     model = PP_DETR('configs/detr/detr_r50_1x_coco.yml', 'weights/yolov3_darknet53_270e_coco.pdparams')       
     # model.check_cinn_output()
     model.benchmark(use_cinn=False)
-    model.benchmark(use_cinn=True)
-    '''
-    print("Test PP-YOLOE  ........")
-    model = PP_YOLOE('configs/ppyolo/ppyolo_r50vd_dcn_1x_coco.yml', 'weights/ppyolo_r50vd_dcn_1x_coco.pdparams')       
-    # # model.check_cinn_output()
-    model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
-    '''
-    print("Test DINO_r50 ........")
-    model = DINO('configs/dino/dino_r50_4scale_1x_coco.yml', 'weights/dino_r50_4scale_1x_coco.pdparams')       
+    
+    # print("Test PP-YOLOE  ........")
+    # model = PP_YOLOE('configs/ppyolo/ppyolo_r50vd_dcn_1x_coco.yml', 'weights/ppyolo_r50vd_dcn_1x_coco.pdparams')       
+    # # # # model.check_cinn_output()
+    # model.benchmark(use_cinn=False)
+    # model.benchmark(use_cinn=True)
+    
+    # print("Test DINO_r50 ........")
+    # model = DINO('configs/dino/dino_r50_4scale_1x_coco.yml', 'weights/dino_r50_4scale_1x_coco.pdparams')       
     # # model.check_cinn_output()
-    model.benchmark(use_cinn=False)
+    # model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
     
     print("Test PPLiteSeg  ........")
@@ -437,12 +471,12 @@ if __name__ == "__main__":
     # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
-    print("Test PPMobileSegTest  ........")
-    model = PPMobileSegTest()       
-    # # model.check_cinn_output()
-    model.benchmark(use_cinn=False)
+    # print("Test PPMobileSegTest  ........")
+    # model = PPMobileSegTest()       
+    # # # model.check_cinn_output()
+    # model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)       
-    '''
+    
     print("Test PP_OCRv4_Server_Det_Test  ........")
     model = PP_OCRv4_Server_Det_Test(batch_size=1)
     model.benchmark(model.input, use_cinn=False) 
@@ -464,3 +498,19 @@ if __name__ == "__main__":
     model = PP_OCRv4_Mobile_Ret_Test(batch_size=1)
     model.benchmark(model.input, use_cinn=False)
     # model.check_performance()    
+    '''
+    
+    print("Test PP_Structurev2_Layoutlm_Test  ........")
+    model = PP_Structurev2_Layoutlm_Test(batch_size=1)
+    model.benchmark(model.input, use_cinn=False)
+    # model.check_performance()  
+    
+    print("Test PP_Structurev2_Layoutxlm_Test  ........")
+    model = PP_Structurev2_Layoutxlm_Test(batch_size=1)
+    model.benchmark(model.input, use_cinn=False)
+    # model.check_performance() 
+    
+    print("Test PP_Structurev2_SLANet_Test  ........")
+    model = PP_Structurev2_SLANet_Test(batch_size=1)
+    model.benchmark(model.input, use_cinn=False)
+    # model.check_performance()            
