@@ -56,7 +56,7 @@ def benchmark(net, input, repeat=5, warmup=3):
     print("--[benchmark] Run for %d times, the average latency is: %f ms" % (repeat, np.mean(t)))
 
 
-def benchmark(net, input_ids, token_type_ids, repeat=5, warmup=3):
+def benchmark2(net, input_ids, token_type_ids, repeat=5, warmup=3):
     # warm up
     for _ in range(warmup):
         net(input_ids, token_type_ids)
@@ -71,7 +71,7 @@ def benchmark(net, input_ids, token_type_ids, repeat=5, warmup=3):
         t.append((t2 - t1)*1000)
     print("--[benchmark] Run for %d times, the average latency is: %f ms" % (repeat, np.mean(t))) 
     
-def benchmark(net, input_ids, attention_mask, max_new_tokens,num_return_sequences, pad_token, pad_token_id, eos_token_id, repeat=5, warmup=3):
+def benchmark3(net, input_ids, attention_mask, max_new_tokens,num_return_sequences, pad_token, pad_token_id, eos_token_id, repeat=5, warmup=3):
     # warm up
     for _ in range(warmup):
         net.generate(
@@ -207,11 +207,11 @@ class TestGRU(TestBase):
     pass
 
 class TestTransformer(TestBase):
-    def __init__(self, batch_size=1):
+    def __init__(self, model_name = 'ernie-3.0-medium-zh', batch_size=1):
         super().__init__()
         max_seq_length = 128  # 最大序列长度
         # model_path = '/home/wzy/AI-ModelScope/bert-base-uncased'
-        model_name = 'ernie-3.0-medium-zh'
+        # model_name = 'ernie-3.0-medium-zh'
         # model_name = 'bert-base-uncased'
         self.net = ErnieModel.from_pretrained(model_name)
         self.tokenizer = ErnieTokenizer.from_pretrained(model_name)
@@ -248,7 +248,7 @@ class TestTransformer(TestBase):
     def benchmark(self, use_cinn):
         print("--[benchmark] benchmark %s" % ("cinn" if use_cinn else "nocinn"))
         net = self.to_eval(use_cinn)
-        benchmark(net, self.input_ids, self.token_type_ids)
+        benchmark2(net, self.input_ids, self.token_type_ids)
 
 
 class TestGPT(TestBase):
@@ -297,7 +297,7 @@ class TestGPT(TestBase):
     def benchmark(self, use_cinn):
         print("--[benchmark] benchmark %s" % ("cinn" if use_cinn else "nocinn"))
         net = self.to_eval(use_cinn)
-        benchmark(net, self.input_ids, self.token_type_ids)
+        benchmark2(net, self.input_ids, self.token_type_ids)
         
         
 class TestLlama(TestBase):
@@ -375,30 +375,30 @@ class TestLlama(TestBase):
     def benchmark(self, use_cinn):
         print("--[benchmark] benchmark %s" % ("cinn" if use_cinn else "nocinn"))
         net = self.to_eval(use_cinn)
-        benchmark(net, self.input_ids, self.attention_mask, self.max_new_tokens, self.num_return_sequences, self.tokenizer.pad_token, self.tokenizer.pad_token_id, self.tokenizer.eos_token_id)        
+        benchmark3(net, self.input_ids, self.attention_mask, self.max_new_tokens, self.num_return_sequences, self.tokenizer.pad_token, self.tokenizer.pad_token_id, self.tokenizer.eos_token_id)        
 
 if __name__ == "__main__":
-    # print("Test LSTM ........")
-    # model = TestLSTM()       
+    print("Test LSTM ........")
+    model = TestLSTM()       
     # # model.check_cinn_output()
-    # model.benchmark(use_cinn=False)
+    model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True) 
-    # print("Test GRU ........")
-    # model = TestGRU()       
-    # model.benchmark(use_cinn=False)    
+    print("Test GRU ........")
+    model = TestGRU()       
+    model.benchmark(use_cinn=False)    
     # model.benchmark(use_cinn=True)   
-    # print("Test Transformer ErnieModel ........")
-    # model = TestTransformer()       
-    # model.benchmark(use_cinn=False)    
+    print("Test Transformer ErnieModel ........")
+    model = TestTransformer('ernie-3.0-medium-zh')       
+    model.benchmark(use_cinn=False)    
     # model.benchmark(use_cinn=True)     
-    # print("Test Transformer BertModel ........")
-    # model = TestTransformer()       
-    # model.benchmark(use_cinn=False)        
+    print("Test Bert BertModel ........")
+    model = TestTransformer('bert-base-uncased')       
+    model.benchmark(use_cinn=False)        
     # model.benchmark(use_cinn=True)        
-    # print("Test GPT Model gpt2-medium-en ........")
-    # model = TestGPT()       
-    # model.benchmark(use_cinn=False)        
+    print("Test GPT Model gpt2-medium-en ........")
+    model = TestGPT()       
+    model.benchmark(use_cinn=False)        
     # model.benchmark(use_cinn=True)     
-    print("Test Llama ........")
+    print("Test Llama Llama-2-7b-chat ........")
     model = TestLlama()       
     model.benchmark(use_cinn=False)      
