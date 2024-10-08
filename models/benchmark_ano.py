@@ -374,43 +374,10 @@ class PP_OCRv4_Mobile_Ret_Test(TestBaseAno):
         self.model_path = './PaddleOCR/configs/det/PP-OCRv4/ch_PP-OCRv4_rec_distill.yml'
         # Ensure the model is initialized
         self.init_model()     
-   
-
-# class PP_Structurev2_Layoutlm_Test(TestBaseAno):
-#     def __init__(self, batch_size=1):
-#         super().__init__()
-#         # Initialize input data with random values
-#         # self.input = paddle.randn([batch_size, 3, 640, 640])
-#         self.input = np.random.rand(3, 640, 640).astype('float32')
-#         self.input = preprocess_image(self.input)
-#         self.model_path = './PaddleOCR/configs/kie/layoutlm_series/re_layoutlmv2_xfund_zh.yml'
-#         # Ensure the model is initialized
-#         self.init_model()
-
-# class PP_Structurev2_Layoutxlm_Test(TestBaseAno):
-#     def __init__(self, batch_size=1):
-#         super().__init__()
-#         # Initialize input data with random values
-#         # self.input = paddle.randn([batch_size, 3, 640, 640])
-#         self.input = np.random.rand(3, 640, 640).astype('float32')
-#         self.input = preprocess_image(self.input)
-#         self.model_path = './PaddleOCR/configs/kie/vi_layoutxlm/re_layoutxlm_xfund_zh.yml'
-#         # Ensure the model is initialized
-#         self.init_model()
-        
-# class PP_Structurev2_SLANet_Test(TestBaseAno):
-#     def __init__(self, batch_size=1):
-#         super().__init__()
-#         # Initialize input data with random values
-#         # self.input = paddle.randn([batch_size, 3, 640, 640])
-#         self.input = np.random.rand(3, 640, 640).astype('float32')
-#         self.input = preprocess_image(self.input)
-#         self.model_path = './PaddleOCR/configs/table/SLANet_ch.yml'
-#         # Ensure the model is initialized
-#         self.init_model()                                   
+                                    
 
 if __name__ == "__main__":
-    '''
+    
     print("Test PPLCNet_x1_0 ........")
     model = PPLCNet_x1_0()       
     # model.check_cinn_output()
@@ -498,19 +465,5 @@ if __name__ == "__main__":
     model = PP_OCRv4_Mobile_Ret_Test(batch_size=1)
     model.benchmark(model.input, use_cinn=False)
     # model.check_performance()    
-    '''
     
-    print("Test PP_Structurev2_Layoutlm_Test  ........")
-    model = PP_Structurev2_Layoutlm_Test(batch_size=1)
-    model.benchmark(model.input, use_cinn=False)
-    # model.check_performance()  
-    
-    print("Test PP_Structurev2_Layoutxlm_Test  ........")
-    model = PP_Structurev2_Layoutxlm_Test(batch_size=1)
-    model.benchmark(model.input, use_cinn=False)
-    # model.check_performance() 
-    
-    print("Test PP_Structurev2_SLANet_Test  ........")
-    model = PP_Structurev2_SLANet_Test(batch_size=1)
-    model.benchmark(model.input, use_cinn=False)
-    # model.check_performance()            
+              
