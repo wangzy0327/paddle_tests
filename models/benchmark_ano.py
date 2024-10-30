@@ -15,6 +15,10 @@ import paddleocr
 
 from paddle import nn  
 from paddle.io import DataLoader, TensorDataset
+import time
+
+paddle.set_flags({"FLAGS_deny_cinn_ops": "uniform_random;",})
+
 
 class LSTMModel(nn.Layer):  
     def __init__(self, input_size, hidden_size, num_layers, num_classes):  
@@ -60,7 +64,7 @@ def to_cinn_net(net, **kwargs):
         **kwargs
     )
 
-def benchmark(net, input, repeat=15, warmup=3):
+def benchmark(net, input, repeat=50, warmup=5):
     # warm up
     for _ in range(warmup):
         net(input)
@@ -75,7 +79,7 @@ def benchmark(net, input, repeat=15, warmup=3):
         t.append((t2 - t1)*1000)
     print("--[benchmark] Run for %d times, the average latency is: %f ms" % (repeat, np.mean(t)))
     
-def benchmark_ano(net, input, repeat=15, warmup=3):
+def benchmark_ano(net, input, repeat=50, warmup=5):
     # warm up
     for _ in range(warmup):
         net.ocr(input)
@@ -383,34 +387,37 @@ if __name__ == "__main__":
     # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
-
+    time.sleep(3)
     print("Test PPHGNet_small ........")
     model = PPHGNet_small()       
     # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test ViT_base 16 ........")
     model = ViT_base_patch16_224()       
     # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test SwinTransformer Base ........")
     model = SwinTransformer_base_patch4_window()       
     # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
-    
+    time.sleep(3)
     print("Test YOLOv3  ........")
     model = YOLOv3TestBase('configs/yolov3/yolov3_darknet53_270e_coco.yml', 'weights/yolov3_darknet53_270e_coco.pdparams')       
     # # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test PP-DETR  ........")
     model = PP_DETR('configs/detr/detr_r50_1x_coco.yml', 'weights/yolov3_darknet53_270e_coco.pdparams')       
     # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
-    
+    time.sleep(3)
     # print("Test PP-YOLOE  ........")
     # model = PP_YOLOE('configs/ppyolo/ppyolo_r50vd_dcn_1x_coco.yml', 'weights/ppyolo_r50vd_dcn_1x_coco.pdparams')       
     # # # # model.check_cinn_output()
@@ -428,16 +435,19 @@ if __name__ == "__main__":
     # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test OCRNetTest  ........")
     model = OCRNetTest()       
     # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test SegFormerTest  ........")
     model = SegFormerTest()       
     # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)
+    time.sleep(3)
     # print("Test PPMobileSegTest  ........")
     # model = PPMobileSegTest()       
     # # # model.check_cinn_output()
@@ -447,6 +457,7 @@ if __name__ == "__main__":
     print("Test PP_OCRv4_Server_Det_Test  ........")
     model = PP_OCRv4_Server_Det_Test(batch_size=1)
     model.benchmark(model.input, use_cinn=False) 
+    time.sleep(3)
     # model.check_performance()
     
     # image_paths = ['./PaddleOCR/doc/imgs/11.jpg', './PaddleOCR/doc/imgs/12.jpg']
@@ -454,16 +465,19 @@ if __name__ == "__main__":
     print("Test PP_OCRv4_Mobile_Det_Test  ........")
     model = PP_OCRv4_Mobile_Det_Test(batch_size=1)
     model.benchmark(model.input, use_cinn=False)
+    time.sleep(3)
     # model.check_performance()      
     
     print("Test PP_OCRv4_Server_Ret_Test  ........")
     model = PP_OCRv4_Server_Ret_Test(batch_size=1)
     model.benchmark(model.input, use_cinn=False)
+    time.sleep(3)
     # model.check_performance()
     
     print("Test PP_OCRv4_Mobile_Ret_Test  ........")
     model = PP_OCRv4_Mobile_Ret_Test(batch_size=1)
     model.benchmark(model.input, use_cinn=False)
+    time.sleep(3)
     # model.check_performance()    
     
               

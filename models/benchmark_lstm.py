@@ -7,6 +7,7 @@ from paddlenlp.transformers import GPTTokenizer, GPTLMHeadModel
 from paddlenlp.transformers import LlamaForCausalLM, LlamaTokenizer
 from paddlenlp.transformers import AutoModelForCausalLM, AutoTokenizer
 import numpy as np
+import time
 
 
 def set_flags(use_cinn):
@@ -40,7 +41,7 @@ def convert_to_float16(model):
         elif param.dtype == paddle.bfloat16:
             param.set_value(param.astype(paddle.float16))               
 
-def benchmark(net, input, repeat=5, warmup=3):
+def benchmark(net, input, repeat=50, warmup=5):
     # warm up
     for _ in range(warmup):
         net(input)
@@ -56,7 +57,7 @@ def benchmark(net, input, repeat=5, warmup=3):
     print("--[benchmark] Run for %d times, the average latency is: %f ms" % (repeat, np.mean(t)))
 
 
-def benchmark2(net, input_ids, token_type_ids, repeat=5, warmup=3):
+def benchmark2(net, input_ids, token_type_ids, repeat=50, warmup=5):
     # warm up
     for _ in range(warmup):
         net(input_ids, token_type_ids)
@@ -71,7 +72,7 @@ def benchmark2(net, input_ids, token_type_ids, repeat=5, warmup=3):
         t.append((t2 - t1)*1000)
     print("--[benchmark] Run for %d times, the average latency is: %f ms" % (repeat, np.mean(t))) 
     
-def benchmark3(net, input_ids, attention_mask, max_new_tokens,num_return_sequences, pad_token, pad_token_id, eos_token_id, repeat=5, warmup=3):
+def benchmark3(net, input_ids, attention_mask, max_new_tokens,num_return_sequences, pad_token, pad_token_id, eos_token_id, repeat=50, warmup=5):
     # warm up
     for _ in range(warmup):
         net.generate(
@@ -383,22 +384,27 @@ if __name__ == "__main__":
     # # model.check_cinn_output()
     model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True) 
+    time.sleep(5)
     print("Test GRU ........")
     model = TestGRU()       
     model.benchmark(use_cinn=False)    
     # model.benchmark(use_cinn=True)   
+    time.sleep(5)
     print("Test Transformer ErnieModel ........")
     model = TestTransformer('ernie-3.0-medium-zh')       
     model.benchmark(use_cinn=False)    
-    # model.benchmark(use_cinn=True)     
+    # model.benchmark(use_cinn=True)  
+    time.sleep(5)   
     print("Test Bert BertModel ........")
     model = TestTransformer('bert-base-uncased')       
     model.benchmark(use_cinn=False)        
-    # model.benchmark(use_cinn=True)        
+    # model.benchmark(use_cinn=True)    
+    time.sleep(5)    
     print("Test GPT Model gpt2-medium-en ........")
     model = TestGPT()       
     model.benchmark(use_cinn=False)        
-    # model.benchmark(use_cinn=True)     
+    # model.benchmark(use_cinn=True)  
+    time.sleep(5)   
     print("Test Llama Llama-2-7b-chat ........")
     model = TestLlama()       
     model.benchmark(use_cinn=False)      

@@ -4,7 +4,9 @@ import time
 import numpy as np
 import paddleclas
 import facenet
+import time
 
+paddle.set_flags({"FLAGS_deny_cinn_ops": "uniform_random;",})
 
 def set_flags(use_cinn):
     if use_cinn:
@@ -30,7 +32,7 @@ def to_cinn_net(net, **kwargs):
         **kwargs
     )
 
-def benchmark(net, input, repeat=5, warmup=3):
+def benchmark(net, input, repeat=5, warmup=1):
     # warm up
     for _ in range(warmup):
         net(input)
@@ -123,29 +125,37 @@ if __name__ == "__main__":
     model = TestResNet18()       
     # model.check_cinn_output()
     model.benchmark(use_cinn=False)
-    # model.benchmark(use_cinn=True)
+    model.benchmark(use_cinn=True)
+    time.sleep(3)
+    '''
     print("Test ResNet50 ........")
     model = TestResNet50()       
     # model.check_cinn_output()
     model.benchmark(use_cinn=False)
-    # model.benchmark(use_cinn=True)
+    model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test SqueezeNet ........")
     model = TestSqueezeNet()
     # model.check_cinn_output()
     model.benchmark(use_cinn=False)
-    # model.benchmark(use_cinn=True)
+    #model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test MobileNet ........")
     model = TestMobileNetV2()
     # model.check_cinn_output()    
     model.benchmark(use_cinn=False)
-    # model.benchmark(use_cinn=True)
+    model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test EfficientNetB0 ........")
     # model.check_cinn_output()    
     model = EfficientNetB0()
     model.benchmark(use_cinn=False)
-    # model.benchmark(use_cinn=True)
+    model.benchmark(use_cinn=True)
+    time.sleep(3)
     print("Test FaceNet ........")
     model = FaceNet()
     # model.check_cinn_output()    
     model.benchmark(use_cinn=False)
-    # model.benchmark(use_cinn=True)          
+    model.benchmark(use_cinn=True)  
+    time.sleep(3)        
+    '''
