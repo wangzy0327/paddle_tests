@@ -7,12 +7,32 @@ import paddleseg
 import paddleocr.tools.program
 import paddleocr.ppocr.modeling.architectures
 import paddleocr.ppocr.utils.save_load
+import paddlenlp
+import ppsci
+
+# cinn_denied_ops = [
+#     "arg_max",
+#     "concat",
+#     "cumsum",
+#     "gather",
+#     "reduce_sum",
+#     "reduce_max",
+#     "slice",
+#     "strided_slice",
+#     "roll",
+#     "tile",
+#     "transpose2",
+#     # "uniform_random",
+#     "lookup_table_v2",
+#     "matmul_v2",
+# ]
 
 cinn_denied_ops = [
     "arg_max",
     "concat",
     "cumsum",
     "gather",
+    "lookup_table_v2",
     "reduce_sum",
     "reduce_max",
     "slice",
@@ -20,8 +40,6 @@ cinn_denied_ops = [
     "roll",
     "tile",
     "transpose2",
-    "uniform_random",
-    "lookup_table_v2",
 ]
 paddle.set_flags({
     "FLAGS_prim_all": True,
@@ -358,7 +376,71 @@ class TestLayoutLM(TestBase):
         return model
 
     def init_input(self):
-        return paddle.load('ser_layoutlm_input.pdtensor')    
+        return paddle.load('ser_layoutlm_input.pdtensor')  
+
+
+class TestErnie(TestBase):
+    def init_model(self):
+        return paddlenlp.transformers.ErnieModel.from_pretrained('ernie-3.0-nano-zh')
+
+    def init_input(self):
+        return paddle.randint(0, 1000, [self.batch_size, 128])
+
+    def eval(self, use_cinn):
+        out = super().eval(use_cinn)
+        return out[0]
+
+class TestBert(TestBase):
+    def init_model(self):
+        return paddlenlp.transformers.BertModel.from_pretrained('bert-base-uncased')
+
+    def init_input(self):
+        return paddle.randint(0, 1000, [self.batch_size, 128])
+
+    def eval(self, use_cinn):
+        out = super().eval(use_cinn)
+        return out[0]      
+
+# class TestLlama2(TestBase):
+#     def init_model(self):
+#         return paddlenlp.transformers.LlamaModel.from_pretrained('meta-llama/Llama-2-7b-chat')
+
+#     def init_input(self):
+#         return {
+#             'input_ids': paddle.randint(0, 1000, [self.batch_size, 128]),
+#             'position_ids': paddle.arange(0, 128, dtype='int64').expand([self.batch_size, -1]),
+#             'attention_mask': paddle.ones([self.batch_size, 128]),
+#         }
+
+class TestGpt2(TestBase):
+    def init_model(self):
+        return paddlenlp.transformers.GPTModel.from_pretrained('gpt2-medium-en')
+        # return paddlenlp.transformers.GPTForSequenceClassification.from_pretrained('gpt2-medium-en',num_labels=2)
+
+    def init_input(self):
+        return paddle.randint(0, 1000, [self.batch_size, 128])    
+
+class TestEulerBeam(TestBase):
+    def init_model(self):
+        import hydra
+        with hydra.initialize_config_dir(version_base=None, config_dir="/opt/PaddleScience/examples/euler_beam/conf"):
+            cfg = hydra.compose(config_name="euler_beam.yaml")
+        model = ppsci.arch.MLP(**cfg.MODEL)
+        ppsci.utils.save_load.load_pretrain(model,
+            'https://paddle-org.bj.bcebos.com/paddlescience/models/euler_beam/euler_beam_pretrained.pdparams',
+            {"biharmonic": ppsci.equation.Biharmonic(dim=1, q=cfg.q, D=cfg.D)}
+        )
+        return model
+
+    def init_input(self):
+        return {
+            'x': paddle.rand([100, 1]),
+            'sdf': paddle.rand([100, 1]),
+        }
+
+    def eval(self, use_cinn):
+        out = super().eval(use_cinn)
+        return out['u']
 
 if __name__ == "__main__":
     # print("PPMobileSeg ......")
@@ -406,13 +488,33 @@ if __name__ == "__main__":
     # model.check_cinn_output()
     # model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)  
-    print("PP-Structurev2-vi-layoutxlm")       
-    model = TestViLayoutXLM(batch_size=1)
+    # print("PP-Structurev2-vi-layoutxlm")       
+    # model = TestViLayoutXLM(batch_size=1)
     # model.check_cinn_output()
-    model.benchmark(use_cinn=False)
-    model.benchmark(use_cinn=True)
+    # model.benchmark(use_cinn=False)
+    # model.benchmark(use_cinn=True)
     # print("PP-Structurev2-vi-layout")       
     # model = TestLayoutLM(batch_size=1)
     # # model.check_cinn_output()
     # model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)    
+    # print("Transformer-Ernie")     
+    # model = TestErnie()
+    # # model.check_cinn_output()
+    # model.benchmark(use_cinn=False)
+    # model.benchmark(use_cinn=True)
+    # print("Bert-base-uncased")     
+    # model = TestBert()
+    # # model.check_cinn_output()
+    # model.benchmark(use_cinn=False)
+    # model.benchmark(use_cinn=True)    
+    # print("Gpt2")     
+    # model = TestGpt2()
+    # # model.check_cinn_output()
+    # model.benchmark(use_cinn=False)
+    # model.benchmark(use_cinn=True)  
+    print("EulerBeam")     
+    model = TestEulerBeam()
+    # model.check_cinn_output()
+    model.benchmark(use_cinn=False)
+    model.benchmark(use_cinn=True)       
