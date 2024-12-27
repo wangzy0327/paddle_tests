@@ -29,9 +29,11 @@ import ppsci
 
 cinn_denied_ops = [
     "arg_max",
+    "bitwise_and",
     "concat",
     "cumsum",
     "gather",
+    "gather_nd",    
     "lookup_table_v2",
     "reduce_sum",
     "reduce_max",
@@ -233,6 +235,26 @@ class TestDino(TestBase):
         out = super().eval(use_cinn)
         return out['bbox']
 
+class TestYOLOX(TestBase):
+    def init_model(self):
+        model_name = "yolox/yolox_nano_300e_coco"
+        cfg = ppdet.core.workspace.load_config(f"/opt/PaddleDetection/configs/{model_name}.yml")
+        model = ppdet.core.workspace.create(cfg.architecture)
+        ppdet.utils.checkpoint.load_weight(model, ppdet.model_zoo.get_weights_url(model_name))
+        return model
+
+    def init_input(self):
+        return {
+            'image': paddle.rand([self.batch_size, 3, 416, 416]),
+            'im_shape': paddle.to_tensor([[416, 416] for _ in range(self.batch_size)]),
+            'scale_factor': paddle.to_tensor([[1.0, 1.0] for _ in range(self.batch_size)]),
+        }
+
+    def eval(self, use_cinn):
+        out = super().eval(use_cinn)
+        return out['bbox']
+   
+
 class TestPPLiteSeg(TestBase):
     def init_model(self):
         return paddleseg.models.PPLiteSeg(
@@ -379,6 +401,22 @@ class TestLayoutLM(TestBase):
         return paddle.load('ser_layoutlm_input.pdtensor')  
 
 
+class TestSVTRV2Rec(TestBase):
+    def init_model(self):
+        config = paddleocr.tools.program.load_config('/opt/PaddleX/paddlex/repo_apis/PaddleOCR_api/configs/ch_SVTRv2_rec.yaml')
+        out_channels_list = {
+            "CTCLabelDecode": 6625,
+            "SARLabelDecode": 6627,
+            "NRTRLabelDecode": 6628,
+        }
+        config["Architecture"]["Head"]["out_channels_list"] = out_channels_list
+        model = paddleocr.ppocr.modeling.architectures.build_model(config['Architecture'])
+        paddleocr.ppocr.utils.save_load.load_model(config, model)
+        return model
+
+    def init_input(self):
+        return paddle.rand([self.batch_size, 3, 48, 320]) 
+
 class TestErnie(TestBase):
     def init_model(self):
         return paddlenlp.transformers.ErnieModel.from_pretrained('ernie-3.0-nano-zh')
@@ -401,16 +439,17 @@ class TestBert(TestBase):
         out = super().eval(use_cinn)
         return out[0]      
 
-# class TestLlama2(TestBase):
-#     def init_model(self):
-#         return paddlenlp.transformers.LlamaModel.from_pretrained('meta-llama/Llama-2-7b-chat')
+class TestLlama2(TestBase):
+    def init_model(self):
+        return paddlenlp.transformers.LlamaModel.from_pretrained('meta-llama/Llama-2-7b-chat')
+        # return paddlenlp.transformers.LlamaForCausalLM.from_pretrained('meta-llama/Llama-2-7b-chat',dtype="float16")
 
-#     def init_input(self):
-#         return {
-#             'input_ids': paddle.randint(0, 1000, [self.batch_size, 128]),
-#             'position_ids': paddle.arange(0, 128, dtype='int64').expand([self.batch_size, -1]),
-#             'attention_mask': paddle.ones([self.batch_size, 128]),
-#         }
+    def init_input(self):
+        return paddle.randint(0, 1000, [self.batch_size, 128])
+
+    def eval(self, use_cinn):
+        out = super().eval(use_cinn)
+        return out[0]
 
 class TestGpt2(TestBase):
     def init_model(self):
@@ -513,8 +552,23 @@ if __name__ == "__main__":
     # # model.check_cinn_output()
     # model.benchmark(use_cinn=False)
     # model.benchmark(use_cinn=True)  
-    print("EulerBeam")     
-    model = TestEulerBeam()
+    # print("EulerBeam")     
+    # model = TestEulerBeam()
+    # # model.check_cinn_output()
+    # model.benchmark(use_cinn=False)
+    # model.benchmark(use_cinn=True)       
+    # print("Llama2")     
+    # model = TestLlama2()
+    # model.check_cinn_output()
+    # model.benchmark(use_cinn=False)
+    # model.benchmark(use_cinn=True)     
+    print("YOLOX")     
+    model = TestYOLOX()
     # model.check_cinn_output()
     model.benchmark(use_cinn=False)
-    model.benchmark(use_cinn=True)       
+    model.benchmark(use_cinn=True)    
+    print("PPOCR-SVTRV2Rec")     
+    model = TestSVTRV2Rec()
+    # model.check_cinn_output()
+    model.benchmark(use_cinn=False)
+    model.benchmark(use_cinn=True)      
